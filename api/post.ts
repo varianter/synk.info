@@ -1,10 +1,8 @@
-export const config = {
-  runtime: 'edge'
-};
+import Vibrant from 'node-vibrant';
 
 const SHAZAM_HOST_URL = 'https://shazam.p.rapidapi.com';
-
-const shazamApiOptions = {
+const QUALITY = 2;
+const SHAZAM_API_OPTIONS = {
   method: 'GET',
   headers: {
     'X-RapidAPI-Key': process.env.RAPID_API_KEY ?? '',
@@ -21,13 +19,21 @@ export default async (req: Request) => {
 
   const tracks = await searchTrack(requestBody.title, requestBody.artist);
 
-  let trackGenres;
+  let trackGenre;
+  let color;
+
   if (tracks) {
-    const trackKey = tracks.hits[0].track.key;
-    trackGenres = await getGenre(trackKey);
+    const track = tracks.hits[0].track;
+    trackGenre = await getGenre(track.key);
+    color = await extractColor(track.images.coverart);
   }
 
-  return new Response(trackGenres ?? req.url);
+  const res = {
+    trackGenre,
+    color
+  };
+
+  return new Response(JSON.stringify(res) ?? req.url);
 };
 
 async function searchTrack(title: string, artist: string) {
@@ -37,7 +43,7 @@ async function searchTrack(title: string, artist: string) {
     const searchResponse = await (
       await fetch(
         `${SHAZAM_HOST_URL}/search?term=${searchQuery}&locale=en-US&offset=0&limit=5`,
-        shazamApiOptions
+        SHAZAM_API_OPTIONS
       )
     ).json();
     tracks = searchResponse.tracks;
@@ -53,8 +59,8 @@ async function getGenre(trackKey: string) {
   try {
     const trackResponse = await (
       await fetch(
-        `${SHAZAM_HOST_URL}/songs/get-details?key=${trackKey}&locale=en-US`,
-        shazamApiOptions
+        `${SHAZAM_HOST_URL}/songs/get-details?key=${trackKey}`,
+        SHAZAM_API_OPTIONS
       )
     ).json();
     trackGenres = trackResponse.genres.primary;
@@ -63,4 +69,17 @@ async function getGenre(trackKey: string) {
   }
 
   return trackGenres;
+}
+
+/**
+ * Extract the dark vibrant color of an image.
+ *
+ * @param url URL to image
+ * @returns Hex color
+ */
+async function extractColor(url: string): Promise<string | undefined> {
+  const palette = await Vibrant.from(url).quality(QUALITY).getPalette();
+  const darkVibrant = palette.DarkVibrant?.hex;
+
+  return darkVibrant;
 }
