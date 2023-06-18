@@ -8,6 +8,7 @@
     "deploy": "vercel deploy --prod"
   },
   "dependencies": {
+    "@vercel/node": "^2.15.1",
     "fast-average-color-node": "^2.6.0",
     "node-vibrant": "3.2.0-alpha",
     "typescript": "^4.9.5"

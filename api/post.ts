@@ -1,4 +1,5 @@
 import Vibrant from 'node-vibrant';
+import { VercelRequest, VercelResponse } from '@vercel/node';
 
 const SHAZAM_HOST_URL = 'https://shazam.p.rapidapi.com';
 const QUALITY = 2;
@@ -10,12 +11,13 @@ const SHAZAM_API_OPTIONS = {
   }
 };
 
-export default async (req: Request) => {
+export default async function handler(req: VercelRequest, response: VercelResponse) {
   if (req.method !== 'POST') {
-    return new Response('Method not allowed.', { status: 405 });
+    response.status(405).send('Method not allowed.');
+    return;
   }
 
-  const requestBody = await new Response(req.body).json();
+  const requestBody = req.body;
 
   const tracks = await searchTrack(requestBody.title, requestBody.artist);
 
@@ -33,7 +35,7 @@ export default async (req: Request) => {
     color
   };
 
-  return new Response(JSON.stringify(res) ?? req.url);
+  response.status(200).json(res);
 };
 
 async function searchTrack(title: string, artist: string) {
