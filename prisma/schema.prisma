@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+model albums {
+  id            String   @id
+  name          String
+  imageurl      String
+  vibrant_color String?
+  tracks        tracks[]
+}
+
+model artists {
+  id           String         @id
+  name         String
+  imageurl     String?
+  trackartists trackartists[]
+}
+
+model recentlyplayed {
+  userid   String
+  playedat DateTime @db.Timestamp(6)
+  trackid  String
+  users    users    @relation(fields: [userid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tracks   tracks   @relation(fields: [trackid], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tracks_fk")
+
+  @@id([userid, playedat, trackid], map: "primary")
+}
+
+model tokens {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userid       String?
+  accesstoken  String
+  refreshtoken String
+  expiresat    DateTime @db.Timestamp(6)
+  users        users?   @relation(fields: [userid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model trackartists {
+  trackid  String
+  artistid String
+  artists  artists @relation(fields: [artistid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tracks   tracks  @relation(fields: [trackid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([trackid, artistid], map: "primary")
+}
+
+model tracks {
+  id             String           @id
+  name           String
+  albumid        String
+  duration       BigInt
+  genre          String?
+  recentlyplayed recentlyplayed[]
+  trackartists   trackartists[]
+  albums         albums           @relation(fields: [albumid], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tracks_album_fkey")
+}
+
+model users {
+  id             String           @id
+  lastsync       DateTime?        @db.Timestamp(6)
+  recentlyplayed recentlyplayed[]
+  tokens         tokens[]
+}

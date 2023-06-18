@@ -8,12 +8,14 @@
     "deploy": "vercel deploy --prod"
   },
   "dependencies": {
+    "@prisma/client": "4.15.0",
     "@vercel/node": "^2.15.1",
     "fast-average-color-node": "^2.6.0",
     "node-vibrant": "3.2.0-alpha",
     "typescript": "^4.9.5"
   },
   "devDependencies": {
+    "prisma": "^4.15.0",
     "vercel": "^28.17.0"
   }
 }
