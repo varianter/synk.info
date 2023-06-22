@@ -25,19 +25,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let tracksGenre_ified = 0;
     for (let track of result) {
         const search = await searchTrack(track.name, track.albums.name);
+        var genre = "Unknown";
         if (search) {
             const hit = search.hits[0].track;
             let trackGenre = await getGenre(hit.key);
-            await prisma.tracks.update({
-                where: {
-                    id: track.id
-                },
-                data: {
-                    genre: trackGenre
-                }
-            });
-            tracksGenre_ified++;
+            if (trackGenre) {
+                genre = trackGenre;
+            }
         };
+        await prisma.tracks.update({
+            where: {
+                id: track.id
+            },
+            data: {
+                genre: genre
+            }
+        });
+        tracksGenre_ified++;
     }
 
     return res.status(200).send(`Found missing genre for ${tracksGenre_ified} tracks.`)
