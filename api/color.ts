@@ -10,14 +10,14 @@ export default async function handler(_: VercelRequest, response: VercelResponse
     var result = await prisma.albums.findMany({
         where: {
             vibrant_color: null,
-            imageurl: {
+            image_url: {
 
             }
         }
     });
 
     for (let album of result) {
-        const color = await extractColor(album.imageurl);
+        const color = await extractColor(album.image_url);
         await prisma.albums.update({
             where: {
                 id: album.id
