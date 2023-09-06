@@ -8,12 +8,7 @@ const prisma = new PrismaClient();
 
 export default async function handler(_: VercelRequest, response: VercelResponse) {
     var result = await prisma.albums.findMany({
-        where: {
-            vibrant_color: null,
-            image_url: {
-
-            }
-        }
+        where: { vibrant_color: null }
     });
 
     for (let album of result) {
