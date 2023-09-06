@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+model albums {
+  id            String   @id
+  name          String
+  image_url     String
+  vibrant_color String?
+  tracks        tracks[]
+}
+
+model artists {
+  id            String          @id
+  name          String
+  image_url     String?
+  track_artists track_artists[]
+}
+
+model tokens {
+  id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String?
+  access_token  String
+  refresh_token String
+  users         users?  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tokens_userid_fkey")
+}
+
+model tracks {
+  id            String          @id
+  name          String
+  album_id      String
+  duration      BigInt
+  genre         String?
+  played_tracks played_tracks[]
+  track_artists track_artists[]
+  albums        albums          @relation(fields: [album_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tracks_album_fkey")
+}
+
+model users {
+  id            String          @id
+  last_sync     DateTime?       @db.Timestamp(6)
+  played_tracks played_tracks[]
+  tokens        tokens[]
+}
+
+model played_tracks {
+  user_id   String
+  played_at DateTime @db.Timestamp(6)
+  track_id  String
+  users     users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "recentlyplayed_userid_fkey")
+  tracks    tracks   @relation(fields: [track_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tracks_fk")
+
+  @@id([user_id, played_at, track_id], map: "primary")
+}
+
+model track_artists {
+  track_id  String
+  artist_id String
+  artists   artists @relation(fields: [artist_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "trackartists_artistid_fkey")
+  tracks    tracks  @relation(fields: [track_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "trackartists_trackid_fkey")
+
+  @@id([track_id, artist_id], map: "primary")
+}
