@@ -23,11 +23,11 @@ model artists {
 }
 
 model tokens {
-  id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id       String?
+  id            String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String @unique(map: "tokens_userid_pk")
   access_token  String
   refresh_token String
-  users         users?  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tokens_userid_fkey")
+  users         users  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tokens_userid_fkey")
 }
 
 model tracks {
@@ -48,7 +48,7 @@ model users {
   group_admins  group_admins[]
   group_members group_members[]
   played_tracks played_tracks[]
-  tokens        tokens[]
+  tokens        tokens?
 }
 
 model played_tracks {
@@ -109,6 +109,7 @@ model playlist_items {
   track_id                   String
   number_of_plays            BigInt
   number_of_unique_listeners BigInt
+  score                      Float
   playlists                  playlists @relation(fields: [playlist_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   tracks                     tracks    @relation(fields: [track_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 

@@ -128,6 +128,7 @@ async function createPlaylist(playlist: Playlist) {
                             track_id: track.id,
                             number_of_plays: track.plays.reduce((sum, userPlays) => sum + userPlays.plays, 0),
                             number_of_unique_listeners: track.plays.length,
+                            score: track.score
                         }
                     })
                 }
