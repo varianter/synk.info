@@ -12,6 +12,7 @@ model albums {
   name          String
   image_url     String
   vibrant_color String?
+  release_date  String?
   tracks        tracks[]
 }
 
@@ -36,6 +37,7 @@ model tracks {
   album_id       String
   duration       BigInt
   genre          String?
+  preview_url    String?
   played_tracks  played_tracks[]
   playlist_items playlist_items[]
   track_artists  track_artists[]
@@ -62,10 +64,11 @@ model played_tracks {
 }
 
 model track_artists {
-  track_id  String
-  artist_id String
-  artists   artists @relation(fields: [artist_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "trackartists_artistid_fkey")
-  tracks    tracks  @relation(fields: [track_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "trackartists_trackid_fkey")
+  track_id     String
+  artist_id    String
+  artist_order BigInt
+  artists      artists @relation(fields: [artist_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "trackartists_artistid_fkey")
+  tracks       tracks  @relation(fields: [track_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "trackartists_trackid_fkey")
 
   @@id([track_id, artist_id], map: "primary")
 }
@@ -118,12 +121,20 @@ model playlist_items {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model playlists {
-  id                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  group_id            String?          @db.Uuid
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  group_id            String?             @db.Uuid
   name                String
   score               Float
   is_current_top_list Boolean
-  creation_time       DateTime?        @default(now()) @db.Timestamp(6)
+  creation_time       DateTime?           @default(now()) @db.Timestamp(6)
   playlist_items      playlist_items[]
-  groups              groups?          @relation(fields: [group_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  groups              groups?             @relation(fields: [group_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  spotify_playlists   spotify_playlists[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model spotify_playlists {
+  id          String     @id(map: "primary")
+  playlist_id String?    @db.Uuid
+  playlists   playlists? @relation(fields: [playlist_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
