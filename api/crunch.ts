@@ -2,6 +2,8 @@ import { PrismaClient } from '@prisma/client'
 import { VercelRequest, VercelResponse } from '@vercel/node'
 
 const prisma = new PrismaClient();
+const topX = 10;
+const tracksPerGenreToplist = 30;
 
 export default async function handler(_: VercelRequest, response: VercelResponse) {
     const playedTracks = await fetchPlayedTracksLast7days();
@@ -94,10 +96,10 @@ function getGenreScore(group: GroupListItem, tracks: ScoredTrack[]) {
 function computePlaylists(data: GroupListItem[]) {
     const statsNew: Playlist[] = [];
     for (let group of data) {
-        statsNew.push({ groupId: group.id, name: "Top 10", score: 1, tracks: group.all_tracks.slice(0, 10) });
+        statsNew.push({ groupId: group.id, name: `Top ${topX}`, score: 1, tracks: group.all_tracks.slice(0, topX) });
 
         for (let genre of group.genres) {
-            statsNew.push({ groupId: group.id, name: genre.name, score: genre.score, tracks: genre.tracks.slice(0, 10) });
+            statsNew.push({ groupId: group.id, name: genre.name, score: genre.score, tracks: genre.tracks.slice(0, tracksPerGenreToplist) });
         }
     }
     return statsNew;
